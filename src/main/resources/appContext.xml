@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	    http://www.springframework.org/schema/rabbit
+        http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task-3.2.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+
+	<!-- Jackson Mapper -->
+	<bean id="jacksonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper">
+		<property name="dateFormat">
+			<bean class="java.text.SimpleDateFormat">
+				<constructor-arg value="EEE, d MMM yyyy HH:mm:ss Z" />
+			</bean>
+		</property>
+	</bean>
+	<bean
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject" ref="jacksonObjectMapper" />
+		<property name="targetMethod" value="configure" />
+		<property name="arguments">
+			<list>
+				<value type="org.codehaus.jackson.map.DeserializationConfig.Feature">FAIL_ON_UNKNOWN_PROPERTIES</value>
+				<value>false</value>
+			</list>
+		</property>
+	</bean>
+	<bean
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject" ref="jacksonObjectMapper" />
+		<property name="targetMethod" value="configure" />
+		<property name="arguments">
+			<list>
+				<value type="org.codehaus.jackson.map.SerializationConfig.Feature">WRITE_DATES_AS_TIMESTAMPS</value>
+				<value>false</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- RabbitMQ Connection -->
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		host="${mq.host}" username="${mq.username}" password="${mq.password}"
+		channel-cache-size="${mq.num_workers}" />
+
+	<!-- The Drop Queue -->
+	<rabbit:queue durable="true" name="DROPLET_QUEUE" />
+
+	<!-- A callback queue -->
+	<bean id="cbQueueName" class="java.lang.String">
+		<constructor-arg
+			value="#{ 'DROP_CB_QUEUE_'.concat(T(java.util.UUID).randomUUID().toString()) }" />
+	</bean>
+	<bean id="cbQueue" class="org.springframework.amqp.core.Queue">
+		<constructor-arg name="name" ref="cbQueueName" />
+		<constructor-arg name="durable" value="false" />
+		<constructor-arg name="exclusive" value="true" />
+		<constructor-arg name="autoDelete" value="true" />
+	</bean>
+
+	<!-- Metadata Exchange -->
+	<rabbit:fanout-exchange name="metadata" durable="true" />
+
+	<!-- Declare the Queues, Exchanged defined here. -->
+	<rabbit:admin connection-factory="rabbitConnectionFactory" />
+
+	<bean id="messageConverter"
+		class="org.springframework.amqp.support.converter.JsonMessageConverter" />
+
+	<rabbit:template id="amqpTemplate" connection-factory="rabbitConnectionFactory"
+		exchange="metadata" message-converter="messageConverter" />
+
+	<!-- Drop map to hold drops undergoing processing -->
+	<bean id="dropsMap" class="java.util.concurrent.ConcurrentHashMap" />
+
+	<!-- Queue to hold drops ready to be published to the API -->
+	<bean id="publishQueue" class="java.util.concurrent.LinkedBlockingQueue" />
+
+	<!-- Handler for drops entering the drop queue -->
+	<bean id="dropHandler" class="com.ushahidi.swiftriver.core.dropqueue.DropHandler">
+		<property name="objectMapper" ref="jacksonObjectMapper" />
+		<property name="amqpTemplate" ref="amqpTemplate" />
+		<property name="dropsMap" ref="dropsMap" />
+		<property name="callbackQueue" ref="cbQueue" />
+	</bean>
+	<rabbit:listener-container
+		connection-factory="rabbitConnectionFactory" acknowledge="manual"
+		error-handler="dropHandler" prefetch="${mq.batch_size}" concurrency="${mq.num_workers}">
+		<rabbit:listener queue-names="DROPLET_QUEUE" ref="dropHandler" />
+	</rabbit:listener-container>
+
+	<!-- Handler for drops coming from metadata extraction -->
+	<bean id="metadataHandler"
+		class="com.ushahidi.swiftriver.core.dropqueue.MetadataResponseHandler">
+		<property name="objectMapper" ref="jacksonObjectMapper" />
+		<property name="dropsMap" ref="dropsMap" />
+		<property name="publishQueue" ref="publishQueue" />
+	</bean>
+	<rabbit:listener-container
+		connection-factory="rabbitConnectionFactory" error-handler="metadataHandler">
+		<rabbit:listener queue-names="#{ cbQueueName }" ref="metadataHandler" />
+	</rabbit:listener-container>
+
+	<!-- Publisher for drops that have completed metadata extraction -->
+	<bean id="httpTransport" class="com.google.api.client.http.javanet.NetHttpTransport" />
+	<bean id="clientAuthentication" class="com.google.api.client.http.BasicAuthentication">
+		<constructor-arg name="username" value="trusted-client" />
+		<constructor-arg name="password" value="somesecret" />
+	</bean>
+	<bean id="credentials"
+		class="com.ushahidi.swiftriver.core.dropqueue.support.CredentialFactoryBean">
+		<property name="clientAuthentication" ref="clientAuthentication" />
+		<property name="httpTransport" ref="httpTransport" />
+		<property name="jsonFactory">
+			<bean class="com.google.api.client.json.jackson.JacksonFactory" />
+		</property>
+		<property name="tokenServerUrl"
+			value="http://localhost:8080/swiftriver-api/oauth/token" />
+	</bean>
+	<bean id="apiClient"
+		class="com.ushahidi.swiftriver.core.api.client.SwiftRiverClient">
+		<constructor-arg name="httpTransport" ref="httpTransport" />
+		<constructor-arg name="httpRequestInitializer" ref="credentials" />
+	</bean>
+
+	<bean id="publisher" class="com.ushahidi.swiftriver.core.dropqueue.Publisher">
+		<property name="publishQueue" ref="publishQueue" />
+		<property name="apiClient" ref="apiClient" />
+	</bean>
+	<task:scheduler id="scheduler" />
+	<task:scheduled-tasks scheduler="scheduler">
+		<task:scheduled ref="publisher" method="postDrops"
+			fixed-delay="5000" />
+	</task:scheduled-tasks>
+
+	<context:property-placeholder location="file:///${ext.prop.dir}/*.properties" />
+
+</beans>
