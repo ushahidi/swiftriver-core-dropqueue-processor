@@ -49,6 +49,8 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 
 	private BlockingQueue<RawDrop> publishQueue;
 	
+	private BlockingQueue<RawDrop> rulesQueue;
+	
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
@@ -72,7 +74,14 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 	public void setPublishQueue(BlockingQueue<RawDrop> publishQueue) {
 		this.publishQueue = publishQueue;
 	}
+	
+	public BlockingQueue<RawDrop> getRulesQueue() {
+		return rulesQueue;
+	}
 
+	public void setRulesQueue(BlockingQueue<RawDrop> rulesQueue) {
+		this.rulesQueue = rulesQueue;
+	}
 
 	/**
 	 * Receive drop that has completed metadata extraction.
@@ -105,10 +114,20 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 				cachedDrop.setSemanticsComplete(true);
 				cachedDrop.setTags(updatedDrop.getTags());
 				cachedDrop.setPlaces(updatedDrop.getPlaces());
+			} else if (updatedDrop.getSource().equals("rules")) {
+				cachedDrop.setRulesComplete(true);
+			}
+
+			// When semantics and metadata extraction are complete,
+			// submit for rules processing
+			if (cachedDrop.isSemanticsComplete() && cachedDrop.isMediaComplete()) {
+				logger.debug(String.format("Sending drop with correlation id '%s' for rules processing",
+						correlationId));
+				rulesQueue.put(cachedDrop);
 			}
 
 			if (cachedDrop.isSemanticsComplete()
-					&& cachedDrop.isMediaComplete()) {
+					&& cachedDrop.isMediaComplete() && cachedDrop.isRulesComplete()) {
 				logger.debug(String
 						.format("Drop with correlation id '%s' has completed metadata extraction",
 								correlationId));

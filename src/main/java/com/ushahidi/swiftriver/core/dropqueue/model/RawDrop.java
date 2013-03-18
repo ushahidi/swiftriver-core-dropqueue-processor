@@ -75,6 +75,12 @@ public class RawDrop {
 	private List<Place> places;
 	
 	private Long deliveryTag;
+	
+	@JsonProperty("rules_complete")
+	private boolean rulesComplete;
+	
+	@JsonProperty("bucket_id")
+	private List<Long> bucketIds;
 
 	public String getChannel() {
 		return channel;
@@ -242,6 +248,22 @@ public class RawDrop {
 
 	public void setDeliveryTag(Long deliveryTag) {
 		this.deliveryTag = deliveryTag;
+	}
+
+	public boolean isRulesComplete() {
+		return rulesComplete;
+	}
+
+	public void setRulesComplete(boolean rulesComplete) {
+		this.rulesComplete = rulesComplete;
+	}
+
+	public List<Long> getBucketIds() {
+		return bucketIds;
+	}
+
+	public void setBucketIds(List<Long> bucketIds) {
+		this.bucketIds = bucketIds;
 	}
 
 	public static class Link {

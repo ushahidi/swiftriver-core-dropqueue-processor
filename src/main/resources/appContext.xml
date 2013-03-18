@@ -81,6 +81,9 @@
 
 	<!-- Queue to hold drops ready to be published to the API -->
 	<bean id="publishQueue" class="java.util.concurrent.LinkedBlockingQueue" />
+	
+	<!-- Queue to hold the drops to undergo rules processing -->
+	<bean id="rulesQueue" class="java.util.concurrent.LinkedBlockingQueue" />
 
 	<!-- Handler for drops entering the drop queue -->
 	<bean id="dropHandler" class="com.ushahidi.swiftriver.core.dropqueue.DropHandler">
@@ -89,6 +92,7 @@
 		<property name="dropsMap" ref="dropsMap" />
 		<property name="callbackQueue" ref="cbQueue" />
 	</bean>
+
 	<rabbit:listener-container
 		connection-factory="rabbitConnectionFactory" acknowledge="manual"
 		error-handler="dropHandler" prefetch="${mq.batch_size}" concurrency="${mq.num_workers}">
@@ -101,11 +105,27 @@
 		<property name="objectMapper" ref="jacksonObjectMapper" />
 		<property name="dropsMap" ref="dropsMap" />
 		<property name="publishQueue" ref="publishQueue" />
+		<property name="rulesQueue" ref="rulesQueue" />
 	</bean>
+
 	<rabbit:listener-container
 		connection-factory="rabbitConnectionFactory" error-handler="metadataHandler">
 		<rabbit:listener queue-names="#{ cbQueueName }" ref="metadataHandler" />
 	</rabbit:listener-container>
+	
+	<!-- Publishes drops to the RULES_QUEUE for filtering before final submission to drops publisher -->
+	<bean id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
+		<property name="connectionFactory" ref="rabbitConnectionFactory"/>
+		<property name="routingKey" value="RULES_QUEUE" />
+		<property name="messageConverter" ref="messageConverter" />
+	</bean>
+
+	<bean id="rulesQueuePublisher" class="com.ushahidi.swiftriver.core.dropqueue.RulesQueuePublisher">
+		<property name="name" value="RulesQueue-Publisher" />
+		<property name="daemon" value="true" />
+		<property name="amqpTemplate" value="rabbitTemplate" />
+		<property name="rulesQueue" ref="rulesQueue" />				
+	</bean>
 
 	<!-- Publisher for drops that have completed metadata extraction -->
 	<bean id="httpTransport" class="com.google.api.client.http.javanet.NetHttpTransport" />
