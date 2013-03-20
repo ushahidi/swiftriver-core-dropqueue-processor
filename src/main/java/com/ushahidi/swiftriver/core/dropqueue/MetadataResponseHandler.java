@@ -41,7 +41,7 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 		ErrorHandler {
 
 	final Logger logger = LoggerFactory
-			.getLogger(MetadataResponseHandlerTest.class);
+			.getLogger(MetadataResponseHandler.class);
 
 	private ObjectMapper objectMapper;
 

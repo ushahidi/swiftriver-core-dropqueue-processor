@@ -123,7 +123,7 @@
 	<bean id="rulesQueuePublisher" class="com.ushahidi.swiftriver.core.dropqueue.RulesQueuePublisher">
 		<property name="name" value="RulesQueue-Publisher" />
 		<property name="daemon" value="true" />
-		<property name="amqpTemplate" value="rabbitTemplate" />
+		<property name="amqpTemplate" ref="rabbitTemplate" />
 		<property name="rulesQueue" ref="rulesQueue" />				
 	</bean>
 
