@@ -49,7 +49,7 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 
 	private BlockingQueue<RawDrop> publishQueue;
 	
-	private BlockingQueue<RawDrop> rulesQueue;
+	private BlockingQueue<RawDrop> dropFilterQueue;
 	
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -74,13 +74,13 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 	public void setPublishQueue(BlockingQueue<RawDrop> publishQueue) {
 		this.publishQueue = publishQueue;
 	}
-	
-	public BlockingQueue<RawDrop> getRulesQueue() {
-		return rulesQueue;
+
+	public BlockingQueue<RawDrop> getDropFilterQueue() {
+		return dropFilterQueue;
 	}
 
-	public void setRulesQueue(BlockingQueue<RawDrop> rulesQueue) {
-		this.rulesQueue = rulesQueue;
+	public void setDropFilterQueue(BlockingQueue<RawDrop> dropFilterQueue) {
+		this.dropFilterQueue = dropFilterQueue;
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 			if (cachedDrop.isSemanticsComplete() && cachedDrop.isMediaComplete()) {
 				logger.debug(String.format("Sending drop with correlation id '%s' for rules processing",
 						correlationId));
-				rulesQueue.put(cachedDrop);
+				dropFilterQueue.put(cachedDrop);
 			}
 
 			if (cachedDrop.isSemanticsComplete()

@@ -83,7 +83,7 @@
 	<bean id="publishQueue" class="java.util.concurrent.LinkedBlockingQueue" />
 	
 	<!-- Queue to hold the drops to undergo rules processing -->
-	<bean id="rulesQueue" class="java.util.concurrent.LinkedBlockingQueue" />
+	<bean id="dropFilterQueue" class="java.util.concurrent.LinkedBlockingQueue" />
 
 	<!-- Handler for drops entering the drop queue -->
 	<bean id="dropHandler" class="com.ushahidi.swiftriver.core.dropqueue.DropHandler">
@@ -105,7 +105,7 @@
 		<property name="objectMapper" ref="jacksonObjectMapper" />
 		<property name="dropsMap" ref="dropsMap" />
 		<property name="publishQueue" ref="publishQueue" />
-		<property name="rulesQueue" ref="rulesQueue" />
+		<property name="dropFilterQueue" ref="dropFilterQueue" />
 	</bean>
 
 	<rabbit:listener-container
@@ -116,15 +116,15 @@
 	<!-- Publishes drops to the RULES_QUEUE for filtering before final submission to drops publisher -->
 	<bean id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
 		<property name="connectionFactory" ref="rabbitConnectionFactory"/>
-		<property name="routingKey" value="RULES_QUEUE" />
+		<property name="routingKey" value="DROP_FILTER_QUEUE" />
 		<property name="messageConverter" ref="messageConverter" />
 	</bean>
 
-	<bean id="rulesQueuePublisher" class="com.ushahidi.swiftriver.core.dropqueue.RulesQueuePublisher">
+	<bean id="dropFilterPublisher" class="com.ushahidi.swiftriver.core.dropqueue.DropFilterPublisher">
 		<property name="name" value="RulesQueue-Publisher" />
 		<property name="daemon" value="true" />
 		<property name="amqpTemplate" ref="rabbitTemplate" />
-		<property name="rulesQueue" ref="rulesQueue" />				
+		<property name="dropFilterQueue" ref="dropFilterQueue" />				
 	</bean>
 
 	<!-- Publisher for drops that have completed metadata extraction -->

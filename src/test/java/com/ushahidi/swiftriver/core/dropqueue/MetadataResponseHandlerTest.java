@@ -41,7 +41,7 @@ public class MetadataResponseHandlerTest {
 	
 	private BlockingQueue<RawDrop> publishQueue;
 	
-	private BlockingQueue<RawDrop> rulesQueue;
+	private BlockingQueue<RawDrop> dropFilterQueue;
 
 	private MetadataResponseHandler metadataResponseHandler;
 	
@@ -49,13 +49,13 @@ public class MetadataResponseHandlerTest {
 	public void setup() {
 		dropsMap = new HashMap<String, RawDrop>();
 		publishQueue = new LinkedBlockingQueue<RawDrop>();
-		rulesQueue = new LinkedBlockingQueue<RawDrop>();
+		dropFilterQueue = new LinkedBlockingQueue<RawDrop>();
 		
 		metadataResponseHandler = new MetadataResponseHandler();
 		metadataResponseHandler.setDropsMap(dropsMap);
 		metadataResponseHandler.setObjectMapper(objectMapper);
 		metadataResponseHandler.setPublishQueue(publishQueue);
-		metadataResponseHandler.setRulesQueue(rulesQueue);
+		metadataResponseHandler.setDropFilterQueue(dropFilterQueue);
 	}
 	
 	@Test
@@ -131,10 +131,10 @@ public class MetadataResponseHandlerTest {
 		rawDrop.setRulesComplete(true);
 		dropsMap.put("correlation_id", rawDrop);
 
-		int size = rulesQueue.size();
+		int size = dropFilterQueue.size();
 		metadataResponseHandler.onMessage(mockMessage, mockChannel);
 		assertTrue(dropsMap.isEmpty());
 		assertTrue(publishQueue.contains(rawDrop));
-		assertEquals(size + 1, rulesQueue.size());
+		assertEquals(size + 1, dropFilterQueue.size());
 	}
 }

@@ -31,22 +31,22 @@ import com.ushahidi.swiftriver.core.dropqueue.model.RawDrop;
  * @author ekala
  *
  */
-public class RulesQueuePublisher extends Thread {
+public class DropFilterPublisher extends Thread {
 	
-	private BlockingQueue<RawDrop> rulesQueue;
+	private BlockingQueue<RawDrop> dropFilterQueue;
 	
 	private AmqpTemplate amqpTemplate;
 	
-	final static Logger LOG = LoggerFactory.getLogger(RulesQueuePublisher.class);
-
-	public BlockingQueue<RawDrop> getRulesQueue() {
-		return rulesQueue;
-	}
-
-	public void setRulesQueue(BlockingQueue<RawDrop> rulesQueue) {
-		this.rulesQueue = rulesQueue;
-	}
+	final static Logger LOG = LoggerFactory.getLogger(DropFilterPublisher.class);
 	
+	public BlockingQueue<RawDrop> getDropFilterQueue() {
+		return dropFilterQueue;
+	}
+
+	public void setDropFilterQueue(BlockingQueue<RawDrop> dropFilterQueue) {
+		this.dropFilterQueue = dropFilterQueue;
+	}
+
 	public AmqpTemplate getAmqpTemplate() {
 		return amqpTemplate;
 	}
@@ -64,7 +64,7 @@ public class RulesQueuePublisher extends Thread {
 
 		try {
 			while (true) {
-				publishDrop(rulesQueue.take());
+				publishDrop(dropFilterQueue.take());
 			}
 		} catch (InterruptedException e) {
 			LOG.error(e.getMessage());

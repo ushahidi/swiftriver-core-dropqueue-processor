@@ -38,7 +38,7 @@ public class DropQueueProcessor {
 				"appContext.xml");
 		context.registerShutdownHook();
 		
-		RulesQueuePublisher publisher = context.getBean(RulesQueuePublisher.class);
+		DropFilterPublisher publisher = context.getBean(DropFilterPublisher.class);
 		publisher.start();
 
 		LOG.info("Drop Queue Processor Started");
