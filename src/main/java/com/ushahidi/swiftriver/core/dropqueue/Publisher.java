@@ -84,6 +84,8 @@ public class Publisher {
 			drop.setDatePublished(rawDrop.getDatePublished());
 			drop.setOriginalId(rawDrop.getDropOriginalId());
 			drop.setRiverIds(rawDrop.getRiverIds());
+			drop.setBucketIds(rawDrop.getBucketIds());
+			drop.setMarkAsRead(rawDrop.getMarkAsRead());
 
 			Drop.Identity identity = new Drop.Identity();
 			identity.setAvatar(rawDrop.getIdentityAvatar());

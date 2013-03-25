@@ -81,6 +81,9 @@ public class RawDrop {
 	
 	@JsonProperty("bucket_id")
 	private List<Long> bucketIds;
+	
+	@JsonProperty("mark_as_read")
+	private List<Long> markAsRead;
 
 	public String getChannel() {
 		return channel;
@@ -264,6 +267,14 @@ public class RawDrop {
 
 	public void setBucketIds(List<Long> bucketIds) {
 		this.bucketIds = bucketIds;
+	}
+
+	public List<Long> getMarkAsRead() {
+		return markAsRead;
+	}
+
+	public void setMarkAsRead(List<Long> markAsRead) {
+		this.markAsRead = markAsRead;
 	}
 
 	public static class Link {
