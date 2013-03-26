@@ -41,7 +41,7 @@ public class MetadataResponseHandlerTest {
 	
 	private BlockingQueue<RawDrop> publishQueue;
 	
-	private BlockingQueue<RawDrop> dropFilterQueue;
+	private BlockingQueue<String> dropFilterQueue;
 
 	private MetadataResponseHandler metadataResponseHandler;
 	
@@ -49,7 +49,7 @@ public class MetadataResponseHandlerTest {
 	public void setup() {
 		dropsMap = new HashMap<String, RawDrop>();
 		publishQueue = new LinkedBlockingQueue<RawDrop>();
-		dropFilterQueue = new LinkedBlockingQueue<RawDrop>();
+		dropFilterQueue = new LinkedBlockingQueue<String>();
 		
 		metadataResponseHandler = new MetadataResponseHandler();
 		metadataResponseHandler.setDropsMap(dropsMap);

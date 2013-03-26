@@ -124,7 +124,9 @@
 		<property name="name" value="RulesQueue-Publisher" />
 		<property name="daemon" value="true" />
 		<property name="amqpTemplate" ref="rabbitTemplate" />
-		<property name="dropFilterQueue" ref="dropFilterQueue" />				
+		<property name="dropFilterQueue" ref="dropFilterQueue" />
+		<property name="dropsMap" ref="dropsMap" />
+		<property name="callbackQueueName" ref="cbQueueName" />
 	</bean>
 
 	<!-- Publisher for drops that have completed metadata extraction -->

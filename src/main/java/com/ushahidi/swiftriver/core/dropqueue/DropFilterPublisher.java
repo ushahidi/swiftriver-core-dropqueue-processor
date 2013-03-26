@@ -17,10 +17,14 @@
 package com.ushahidi.swiftriver.core.dropqueue;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
 
 import com.ushahidi.swiftriver.core.dropqueue.model.RawDrop;
 
@@ -33,17 +37,21 @@ import com.ushahidi.swiftriver.core.dropqueue.model.RawDrop;
  */
 public class DropFilterPublisher extends Thread {
 	
-	private BlockingQueue<RawDrop> dropFilterQueue;
+	private BlockingQueue<String> dropFilterQueue;
+	
+	private ConcurrentMap<String, RawDrop> dropsMap;
 	
 	private AmqpTemplate amqpTemplate;
 	
+	private String callbackQueueName;
+	
 	final static Logger LOG = LoggerFactory.getLogger(DropFilterPublisher.class);
 	
-	public BlockingQueue<RawDrop> getDropFilterQueue() {
+	public BlockingQueue<String> getDropFilterQueue() {
 		return dropFilterQueue;
 	}
 
-	public void setDropFilterQueue(BlockingQueue<RawDrop> dropFilterQueue) {
+	public void setDropFilterQueue(BlockingQueue<String> dropFilterQueue) {
 		this.dropFilterQueue = dropFilterQueue;
 	}
 
@@ -53,6 +61,22 @@ public class DropFilterPublisher extends Thread {
 
 	public void setAmqpTemplate(AmqpTemplate amqpTemplate) {
 		this.amqpTemplate = amqpTemplate;
+	}
+
+	public ConcurrentMap<String, RawDrop> getDropsMap() {
+		return dropsMap;
+	}
+
+	public void setDropsMap(ConcurrentMap<String, RawDrop> dropsMap) {
+		this.dropsMap = dropsMap;
+	}
+
+	public String getCallbackQueueName() {
+		return callbackQueueName;
+	}
+
+	public void setCallbackQueueName(String callbackQueueName) {
+		this.callbackQueueName = callbackQueueName;
 	}
 
 	/*
@@ -71,9 +95,24 @@ public class DropFilterPublisher extends Thread {
 		}
 	}
 	
-	public void publishDrop(RawDrop drop) {
-		LOG.debug("Publishing drop to rules queue");
-		amqpTemplate.convertAndSend(drop);
+	public void publishDrop(String dropsMapKey) {
+		LOG.debug(String.format("Sending drop with correlation id %s to rules processor",
+				dropsMapKey));
+		
+		synchronized (dropsMap) {
+			RawDrop drop  = dropsMap.get(dropsMapKey);
+
+			final byte[] correlationId = dropsMapKey.getBytes();
+			final String replyTo = this.getCallbackQueueName();
+
+			amqpTemplate.convertAndSend(drop, new MessagePostProcessor() {
+				public Message postProcessMessage(Message message) throws AmqpException {
+					message.getMessageProperties().setCorrelationId(correlationId);
+					message.getMessageProperties().setReplyTo(replyTo);
+					return message;
+				}
+			});
+		}
 	}
 	
 }
