@@ -63,6 +63,9 @@ public class RawDrop {
 	@JsonProperty("media_complete")
 	private boolean mediaComplete;
 	
+	@JsonProperty("channel_ids")
+	private List<Long> channelIds;
+
 	@JsonProperty("river_id")
 	private List<Long> riverIds;
 	
@@ -84,7 +87,7 @@ public class RawDrop {
 	
 	@JsonProperty("mark_as_read")
 	private List<Long> markAsRead;
-
+	
 	public String getChannel() {
 		return channel;
 	}
@@ -211,6 +214,14 @@ public class RawDrop {
 
 	public void setRiverIds(List<Long> riverIds) {
 		this.riverIds = riverIds;
+	}
+
+	public List<Long> getChannelIds() {
+		return channelIds;
+	}
+
+	public void setChannelIds(List<Long> channelIds) {
+		this.channelIds = channelIds;
 	}
 
 	public List<Link> getLinks() {
