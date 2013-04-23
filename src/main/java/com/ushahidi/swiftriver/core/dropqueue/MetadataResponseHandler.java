@@ -51,36 +51,26 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 	
 	private BlockingQueue<String> dropFilterQueue;
 	
-	public ObjectMapper getObjectMapper() {
-		return objectMapper;
-	}
-
+	private Map<String, Long> deliveryTagsMap;
+	
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
-	}
-
-	public Map<String, RawDrop> getDropsMap() {
-		return dropsMap;
 	}
 
 	public void setDropsMap(Map<String, RawDrop> dropsMap) {
 		this.dropsMap = dropsMap;
 	}
 
-	public BlockingQueue<RawDrop> getPublishQueue() {
-		return publishQueue;
-	}
-
 	public void setPublishQueue(BlockingQueue<RawDrop> publishQueue) {
 		this.publishQueue = publishQueue;
 	}
 
-	public BlockingQueue<String> getDropFilterQueue() {
-		return dropFilterQueue;
-	}
-
 	public void setDropFilterQueue(BlockingQueue<String> dropFilterQueue) {
 		this.dropFilterQueue = dropFilterQueue;
+	}
+
+	public void setDeliveryTagsMap(Map<String, Long> deliveryTagsMap) {
+		this.deliveryTagsMap = deliveryTagsMap;
 	}
 
 	/**
@@ -135,10 +125,18 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 
 			if (cachedDrop.isSemanticsComplete()
 					&& cachedDrop.isMediaComplete() && cachedDrop.isRulesComplete()) {
-				logger.debug("Drop with correlation id '{}' has completed metadata extraction",
-								correlationId);
+
+				// Queue the drop for posting via the API
 				publishQueue.put(cachedDrop);
 				dropsMap.remove(correlationId);
+
+				// Confirm the drop has completed processing
+				Long deliveryTag = deliveryTagsMap.remove(correlationId);
+				channel.basicAck(deliveryTag.longValue(), false);
+
+				// Log
+				logger.debug("Drop with correlation id '{}' has completed metadata extraction",
+						correlationId);
 			}
 		}
 	}

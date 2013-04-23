@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -42,20 +43,24 @@ public class MetadataResponseHandlerTest {
 	private BlockingQueue<RawDrop> publishQueue;
 	
 	private BlockingQueue<String> dropFilterQueue;
+	
+	private Map<String, Long> deliveryTagsMap;
 
 	private MetadataResponseHandler metadataResponseHandler;
-	
+
 	@Before
 	public void setup() {
 		dropsMap = new HashMap<String, RawDrop>();
 		publishQueue = new LinkedBlockingQueue<RawDrop>();
 		dropFilterQueue = new LinkedBlockingQueue<String>();
+		deliveryTagsMap = new ConcurrentHashMap<String, Long>();
 		
 		metadataResponseHandler = new MetadataResponseHandler();
 		metadataResponseHandler.setDropsMap(dropsMap);
 		metadataResponseHandler.setObjectMapper(objectMapper);
 		metadataResponseHandler.setPublishQueue(publishQueue);
 		metadataResponseHandler.setDropFilterQueue(dropFilterQueue);
+		metadataResponseHandler.setDeliveryTagsMap(deliveryTagsMap);
 	}
 	
 	@Test
@@ -130,11 +135,13 @@ public class MetadataResponseHandlerTest {
 		rawDrop.setMediaComplete(true);
 		rawDrop.setRulesComplete(true);
 		dropsMap.put("correlation_id", rawDrop);
+		deliveryTagsMap.put("correlation_id", 22L);
 
 		int size = dropFilterQueue.size();
 		metadataResponseHandler.onMessage(mockMessage, mockChannel);
 		assertTrue(dropsMap.isEmpty());
 		assertTrue(publishQueue.contains(rawDrop));
 		assertEquals(size + 1, dropFilterQueue.size());
+		assertTrue(deliveryTagsMap.isEmpty());
 	}
 }

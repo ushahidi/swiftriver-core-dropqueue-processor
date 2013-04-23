@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -47,18 +48,22 @@ public class DropHandlerTest {
 	private Queue mockCallbackQueue;
 
 	private DropHandler dropHandler;
+	
+	private Map<String, Long> deliveryTagsMap;
 
 	@Before
 	public void setup() {
 		mockAmqpTemplate = mock(AmqpTemplate.class);
 		dropsMap = new HashMap<String, RawDrop>();
 		mockCallbackQueue = mock(Queue.class);
+		deliveryTagsMap = new ConcurrentHashMap<String, Long>();
 		
 		dropHandler = new DropHandler();
 		dropHandler.setAmqpTemplate(mockAmqpTemplate);
 		dropHandler.setCallbackQueue(mockCallbackQueue);
 		dropHandler.setDropsMap(dropsMap);
 		dropHandler.setObjectMapper(objectMapper);
+		dropHandler.setDeliveryTagsMap(deliveryTagsMap);
 	}
 
 	@Test
@@ -71,11 +76,13 @@ public class DropHandlerTest {
 		String body = "{\"identity_orig_id\": \"http://feeds.bbci.co.uk/news/rss.xml\", \"droplet_raw\": \"The danger of growing resistance to antibiotics should be treated as seriously as the threat of terrorism, England's chief medical officer says.\", \"droplet_orig_id\": \"c558d88a44fc70da36d04746574e05e4\", \"droplet_locale\": \"en-gb\", \"identity_username\": \"http://www.bbc.co.uk/news/#sa-ns_mchannel=rss&ns_source=PublicRSS20-sa\", \"droplet_date_pub\": \"Mon, 11 Mar 2013 07:32:59 +0000\", \"droplet_type\": \"original\", \"identity_avatar\": \"http://news.bbcimg.co.uk/nol/shared/img/bbc_news_120x60.gif\", \"droplet_title\": \"Antibiotic resistance 'threat to UK'\", \"links\": [{\"url\": \"http://www.bbc.co.uk/news/health-21737844#sa-ns_mchannel=rss&ns_source=PublicRSS20-sa\", \"original_url\": true}], \"droplet_content\": \"The danger of growing resistance to antibiotics should be treated as seriously as the threat of terrorism, England's chief medical officer says.\", \"identity_name\": \"BBC News - Home\", \"channel\": \"rss\", \"river_id\": [2]}";
 		when(mockMessage.getBody()).thenReturn(body.getBytes());
 		when(mockMessage.getMessageProperties()).thenReturn(mockMessageProperties);
+		when(mockMessageProperties.getDeliveryTag()).thenReturn(22L);
 		when(mockCallbackQueue.getName()).thenReturn("callback");
 		
 		dropHandler.onMessage(mockMessage, mockChannel);
 
 		assertTrue(dropsMap.size() > 0);
+		assertTrue(deliveryTagsMap.size() > 0);
 		String correlationId = (String)dropsMap.keySet().toArray()[0];
 		
 		ArgumentCaptor<RawDrop> dropArgument = ArgumentCaptor

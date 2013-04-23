@@ -55,6 +55,8 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 	private Map<String, RawDrop> dropsMap;
 
 	private Queue callbackQueue;
+	
+	private Map<String, Long> deliveryTagsMap;
 
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -88,6 +90,10 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 		this.callbackQueue = callbackQueue;
 	}
 
+	public void setDeliveryTagsMap(Map<String, Long> deliveryTagsMap) {
+		this.deliveryTagsMap = deliveryTagsMap;
+	}
+
 	/**
 	 * Receive drops placed on the DROPLET_QUEUE by channel apps.
 	 * 
@@ -108,7 +114,11 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 
 		final String correlationId = UUID.randomUUID().toString();
 		final String replyTo = callbackQueue.getName();
+		long deliveryTag = message.getMessageProperties().getDeliveryTag();
+		
 		dropsMap.put(correlationId, drop);
+		deliveryTagsMap.put(correlationId, Long.valueOf(deliveryTag));
+		
 		logger.debug("Sending drop with correlation ID {} to {}", correlationId, replyTo);
 		amqpTemplate.convertAndSend(drop, new MessagePostProcessor() {
 			public Message postProcessMessage(Message message)
