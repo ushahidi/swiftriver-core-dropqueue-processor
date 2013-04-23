@@ -106,6 +106,13 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 		synchronized (dropsMap) {
 			RawDrop cachedDrop = dropsMap.get(correlationId);
 
+			// Verify that the drop exists in the in-memory cache
+			if (cachedDrop == null) {
+				logger.error("Drop with correlation id '{}' not found in cache",
+						correlationId);
+				return;
+			}
+
 			if (updatedDrop.getSource().equals("mediaextractor")) {
 				cachedDrop.setMediaComplete(true);
 				cachedDrop.setMedia(updatedDrop.getMedia());
@@ -121,16 +128,15 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 			// When semantics and metadata extraction are complete,
 			// submit for rules processing
 			if (cachedDrop.isSemanticsComplete() && cachedDrop.isMediaComplete()) {
-				logger.debug(String.format("Sending drop with correlation id '%s' for rules processing",
-						correlationId));
+				logger.debug("Sending drop with correlation id '{}' for rules processing",
+						correlationId);
 				dropFilterQueue.put(correlationId);
 			}
 
 			if (cachedDrop.isSemanticsComplete()
 					&& cachedDrop.isMediaComplete() && cachedDrop.isRulesComplete()) {
-				logger.debug(String
-						.format("Drop with correlation id '%s' has completed metadata extraction",
-								correlationId));
+				logger.debug("Drop with correlation id '{}' has completed metadata extraction",
+								correlationId);
 				publishQueue.put(cachedDrop);
 				dropsMap.remove(correlationId);
 			}

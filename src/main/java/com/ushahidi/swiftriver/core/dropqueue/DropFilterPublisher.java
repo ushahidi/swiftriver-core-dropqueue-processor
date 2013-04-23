@@ -102,6 +102,12 @@ public class DropFilterPublisher extends Thread {
 		synchronized (dropsMap) {
 			RawDrop drop  = dropsMap.get(dropsMapKey);
 
+			// Drop doesn't exist; purge
+			if (drop == null) {
+				LOG.info("Drop with correlation ID '{}' not found", dropsMapKey);
+				return;
+			}
+
 			final byte[] correlationId = dropsMapKey.getBytes();
 			final String replyTo = this.getCallbackQueueName();
 

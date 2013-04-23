@@ -33,6 +33,7 @@ public class DropQueueProcessor {
 
 	final static Logger LOG = LoggerFactory.getLogger(DropQueueProcessor.class);
 
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"appContext.xml");

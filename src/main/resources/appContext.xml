@@ -50,7 +50,15 @@
 		channel-cache-size="${mq.num_workers}" />
 
 	<!-- The Drop Queue -->
-	<rabbit:queue durable="true" name="DROPLET_QUEUE" />
+	<rabbit:queue id="dropletQueue" durable="true" name="DROPLET_QUEUE"/>
+	
+	<!-- Configures the drops exchange -->
+	<rabbit:direct-exchange name="drops" durable="true" id="dropsExchange">
+		<!-- Bind the exchange to the DROPLET_QUEUE -->
+		<rabbit:bindings>
+			<rabbit:binding queue="dropletQueue" />
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
 
 	<!-- A callback queue -->
 	<bean id="cbQueueName" class="java.lang.String">
@@ -66,6 +74,9 @@
 
 	<!-- Metadata Exchange -->
 	<rabbit:fanout-exchange name="metadata" durable="true" />
+	
+	<!-- DropFilter exchange -->
+	<rabbit:direct-exchange name="dropFilter" durable="true" />
 
 	<!-- Declare the Queues, Exchanged defined here. -->
 	<rabbit:admin connection-factory="rabbitConnectionFactory" />
@@ -96,7 +107,7 @@
 	<rabbit:listener-container
 		connection-factory="rabbitConnectionFactory" acknowledge="manual"
 		error-handler="dropHandler" prefetch="${mq.batch_size}" concurrency="${mq.num_workers}">
-		<rabbit:listener queue-names="DROPLET_QUEUE" ref="dropHandler" />
+		<rabbit:listener queues="dropletQueue" ref="dropHandler" />
 	</rabbit:listener-container>
 
 	<!-- Handler for drops coming from metadata extraction -->
@@ -116,7 +127,7 @@
 	<!-- Publishes drops to the RULES_QUEUE for filtering before final submission to drops publisher -->
 	<bean id="rabbitTemplate" class="org.springframework.amqp.rabbit.core.RabbitTemplate">
 		<property name="connectionFactory" ref="rabbitConnectionFactory"/>
-		<property name="routingKey" value="DROP_FILTER_QUEUE" />
+		<property name="exchange" value="dropFilter" />
 		<property name="messageConverter" ref="messageConverter" />
 	</bean>
 

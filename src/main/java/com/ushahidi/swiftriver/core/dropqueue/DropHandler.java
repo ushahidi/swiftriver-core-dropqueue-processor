@@ -109,7 +109,7 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 		final String correlationId = UUID.randomUUID().toString();
 		final String replyTo = callbackQueue.getName();
 		dropsMap.put(correlationId, drop);
-
+		logger.debug("Sending drop with correlation ID {} to {}", correlationId, replyTo);
 		amqpTemplate.convertAndSend(drop, new MessagePostProcessor() {
 			public Message postProcessMessage(Message message)
 					throws AmqpException {
@@ -124,9 +124,8 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 			}
 		});
 
-		logger.debug(String.format(
-				"Drop sent for metadata extraction with correlation id '%s'",
-				correlationId));
+		logger.debug("Drop sent for metadata extraction with correlation id '{}'",
+				correlationId);
 	}
 
 	public void handleError(Throwable t) {
