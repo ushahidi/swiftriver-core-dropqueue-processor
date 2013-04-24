@@ -116,7 +116,7 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 		final String replyTo = callbackQueue.getName();
 		long deliveryTag = message.getMessageProperties().getDeliveryTag();
 		
-		dropsMap.put(correlationId, drop);
+		dropsMap.put(correlationId, drop);		
 		deliveryTagsMap.put(correlationId, Long.valueOf(deliveryTag));
 		
 		logger.debug("Sending drop with correlation ID {} to {}", correlationId, replyTo);

@@ -47,7 +47,7 @@
 	<!-- RabbitMQ Connection -->
 	<rabbit:connection-factory id="rabbitConnectionFactory"
 		host="${mq.host}" username="${mq.username}" password="${mq.password}"
-		channel-cache-size="${mq.num_workers}" />
+		channel-cache-size="#{ ${mq.batch_size} * ${mq.num_workers} }" />
 
 	<!-- The Drop Queue -->
 	<rabbit:queue id="dropletQueue" durable="true" name="DROPLET_QUEUE"/>
@@ -110,7 +110,7 @@
 
 	<rabbit:listener-container id="dropsChannelListener"
 		connection-factory="rabbitConnectionFactory" acknowledge="manual"
-		error-handler="dropHandler" prefetch="${mq.batch_size}" concurrency="${mq.num_workers}">
+		error-handler="dropHandler" concurrency="${mq.num_workers}">
 		<rabbit:listener queues="dropletQueue" ref="dropHandler" />
 	</rabbit:listener-container>
 

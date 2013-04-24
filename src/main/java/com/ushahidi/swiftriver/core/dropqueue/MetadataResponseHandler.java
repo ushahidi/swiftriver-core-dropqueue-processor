@@ -112,6 +112,9 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 				cachedDrop.setTags(updatedDrop.getTags());
 				cachedDrop.setPlaces(updatedDrop.getPlaces());
 			} else if (updatedDrop.getSource().equals("rules")) {
+				cachedDrop.setBucketIds(updatedDrop.getBucketIds());
+				cachedDrop.setRiverIds(updatedDrop.getRiverIds());
+				cachedDrop.setMarkAsRead(updatedDrop.getMarkAsRead());
 				cachedDrop.setRulesComplete(true);
 			}
 
