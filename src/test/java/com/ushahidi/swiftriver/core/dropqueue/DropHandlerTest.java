@@ -49,21 +49,21 @@ public class DropHandlerTest {
 
 	private DropHandler dropHandler;
 	
-	private Map<String, Long> deliveryTagsMap;
+	private Map<String, DeliveryFrame> deliveryFramesMap;
 
 	@Before
 	public void setup() {
 		mockAmqpTemplate = mock(AmqpTemplate.class);
 		dropsMap = new HashMap<String, RawDrop>();
 		mockCallbackQueue = mock(Queue.class);
-		deliveryTagsMap = new ConcurrentHashMap<String, Long>();
+		deliveryFramesMap = new ConcurrentHashMap<String, DeliveryFrame>();
 		
 		dropHandler = new DropHandler();
 		dropHandler.setAmqpTemplate(mockAmqpTemplate);
 		dropHandler.setCallbackQueue(mockCallbackQueue);
 		dropHandler.setDropsMap(dropsMap);
 		dropHandler.setObjectMapper(objectMapper);
-		dropHandler.setDeliveryTagsMap(deliveryTagsMap);
+		dropHandler.setDeliveryFramesMap(deliveryFramesMap);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class DropHandlerTest {
 		dropHandler.onMessage(mockMessage, mockChannel);
 
 		assertTrue(dropsMap.size() > 0);
-		assertTrue(deliveryTagsMap.size() > 0);
+		assertTrue(deliveryFramesMap.size() > 0);
 		String correlationId = (String)dropsMap.keySet().toArray()[0];
 		
 		ArgumentCaptor<RawDrop> dropArgument = ArgumentCaptor

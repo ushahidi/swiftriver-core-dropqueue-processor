@@ -51,7 +51,7 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 	
 	private BlockingQueue<String> dropFilterQueue;
 	
-	private Map<String, Long> deliveryTagsMap;
+	private Map<String, DeliveryFrame> deliveryFramesMap;
 	
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
@@ -69,8 +69,8 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 		this.dropFilterQueue = dropFilterQueue;
 	}
 
-	public void setDeliveryTagsMap(Map<String, Long> deliveryTagsMap) {
-		this.deliveryTagsMap = deliveryTagsMap;
+	public void setDeliveryFramesMap(Map<String, DeliveryFrame> deliveryFramesMap) {
+		this.deliveryFramesMap = deliveryFramesMap;
 	}
 
 	/**
@@ -89,9 +89,9 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 				.getCorrelationId());
 		RawDrop updatedDrop = objectMapper.readValue(
 				new String(message.getBody()), RawDrop.class);
-		logger.debug(String
-				.format("Metadata Response received from '%s' with correlation_id '%s'",
-						updatedDrop.getSource(), correlationId));
+
+		logger.info("Metadata Response received from '{}' with correlation_id '{}'",
+						updatedDrop.getSource(), correlationId);
 
 		synchronized (dropsMap) {
 			RawDrop cachedDrop = dropsMap.get(correlationId);
@@ -100,6 +100,9 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 			if (cachedDrop == null) {
 				logger.error("Drop with correlation id '{}' not found in cache",
 						correlationId);
+
+				// Acknowledge receipt
+				channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
 				return;
 			}
 
@@ -121,7 +124,7 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 			// When semantics and metadata extraction are complete,
 			// submit for rules processing
 			if (cachedDrop.isSemanticsComplete() && cachedDrop.isMediaComplete()) {
-				logger.debug("Sending drop with correlation id '{}' for rules processing",
+				logger.info("Sending drop with correlation id '{}' for rules processing",
 						correlationId);
 				dropFilterQueue.put(correlationId);
 			}
@@ -130,15 +133,23 @@ public class MetadataResponseHandler implements ChannelAwareMessageListener,
 					&& cachedDrop.isMediaComplete() && cachedDrop.isRulesComplete()) {
 
 				// Queue the drop for posting via the API
-				publishQueue.put(cachedDrop);
+				if (cachedDrop.getRiverIds() != null && 
+						!cachedDrop.getRiverIds().isEmpty()) {
+					publishQueue.put(cachedDrop);
+				} else {
+					logger.info("No destination rivers for drop with correlation id '{}'",
+							correlationId);
+				}
+
 				dropsMap.remove(correlationId);
 
 				// Confirm the drop has completed processing
-				Long deliveryTag = deliveryTagsMap.remove(correlationId);
-				channel.basicAck(deliveryTag.longValue(), false);
+				DeliveryFrame deliveryFrame = deliveryFramesMap.remove(correlationId);
+				Channel confirmChannel = deliveryFrame.getChannel();
+				confirmChannel.basicAck(deliveryFrame.getDeliveryTag(), false);
 
 				// Log
-				logger.debug("Drop with correlation id '{}' has completed metadata extraction",
+				logger.info("Drop with correlation id '{}' has completed metadata extraction",
 						correlationId);
 			}
 		}

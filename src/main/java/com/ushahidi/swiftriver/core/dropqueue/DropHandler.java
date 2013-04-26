@@ -56,7 +56,7 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 
 	private Queue callbackQueue;
 	
-	private Map<String, Long> deliveryTagsMap;
+	private Map<String, DeliveryFrame> deliveryFramesMap;
 
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -90,8 +90,8 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 		this.callbackQueue = callbackQueue;
 	}
 
-	public void setDeliveryTagsMap(Map<String, Long> deliveryTagsMap) {
-		this.deliveryTagsMap = deliveryTagsMap;
+	public void setDeliveryFramesMap(Map<String, DeliveryFrame> deliveryFramesMap) {
+		this.deliveryFramesMap = deliveryFramesMap;
 	}
 
 	/**
@@ -116,8 +116,9 @@ public class DropHandler implements ChannelAwareMessageListener, ErrorHandler {
 		final String replyTo = callbackQueue.getName();
 		long deliveryTag = message.getMessageProperties().getDeliveryTag();
 		
-		dropsMap.put(correlationId, drop);		
-		deliveryTagsMap.put(correlationId, Long.valueOf(deliveryTag));
+		dropsMap.put(correlationId, drop);
+		DeliveryFrame deliveryFrame = new DeliveryFrame(deliveryTag, channel);
+		deliveryFramesMap.put(correlationId, deliveryFrame);
 		
 		logger.debug("Sending drop with correlation ID {} to {}", correlationId, replyTo);
 		amqpTemplate.convertAndSend(drop, new MessagePostProcessor() {

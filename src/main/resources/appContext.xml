@@ -47,7 +47,7 @@
 	<!-- RabbitMQ Connection -->
 	<rabbit:connection-factory id="rabbitConnectionFactory"
 		host="${mq.host}" username="${mq.username}" password="${mq.password}"
-		channel-cache-size="#{ ${mq.batch_size} * ${mq.num_workers} }" />
+		channel-cache-size="${mq.num_workers}" />
 
 	<!-- The Drop Queue -->
 	<rabbit:queue id="dropletQueue" durable="true" name="DROPLET_QUEUE"/>
@@ -79,7 +79,7 @@
 	<rabbit:direct-exchange name="dropFilter" durable="true" />
 
 	<!-- Declare the Queues, Exchanged defined here. -->
-	<rabbit:admin connection-factory="rabbitConnectionFactory" />
+	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
 
 	<bean id="messageConverter"
 		class="org.springframework.amqp.support.converter.JsonMessageConverter" />
@@ -91,7 +91,7 @@
 	<bean id="dropsMap" class="java.util.concurrent.ConcurrentHashMap" />
 	
 	<!-- Map to hold the drops and their delivery tag -->
-	<bean id="deliveryTagsMap" class="java.util.concurrent.ConcurrentHashMap" />
+	<bean id="deliveryFramesMap" class="java.util.concurrent.ConcurrentHashMap" />
 
 	<!-- Queue to hold drops ready to be published to the API -->
 	<bean id="publishQueue" class="java.util.concurrent.LinkedBlockingQueue" />
@@ -105,12 +105,12 @@
 		<property name="amqpTemplate" ref="amqpTemplate" />
 		<property name="dropsMap" ref="dropsMap" />
 		<property name="callbackQueue" ref="cbQueue" />
-		<property name="deliveryTagsMap" ref="deliveryTagsMap" />
+		<property name="deliveryFramesMap" ref="deliveryFramesMap" />
 	</bean>
 
-	<rabbit:listener-container id="dropsChannelListener"
-		connection-factory="rabbitConnectionFactory" acknowledge="manual"
-		error-handler="dropHandler" concurrency="${mq.num_workers}">
+	<rabbit:listener-container connection-factory="rabbitConnectionFactory"
+		acknowledge="manual" prefetch="#{ ${mq.batch_size} * ${mq.num_workers} }" 
+		concurrency="${mq.num_workers}" error-handler="dropHandler">
 		<rabbit:listener queues="dropletQueue" ref="dropHandler" />
 	</rabbit:listener-container>
 
@@ -121,7 +121,7 @@
 		<property name="dropsMap" ref="dropsMap" />
 		<property name="publishQueue" ref="publishQueue" />
 		<property name="dropFilterQueue" ref="dropFilterQueue" />
-		<property name="deliveryTagsMap" ref="deliveryTagsMap" />
+		<property name="deliveryFramesMap" ref="deliveryFramesMap" />
 	</bean>
 
 	<rabbit:listener-container

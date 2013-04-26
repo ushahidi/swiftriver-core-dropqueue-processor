@@ -19,7 +19,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +46,7 @@ public class MetadataResponseHandlerTest {
 	
 	private BlockingQueue<String> dropFilterQueue;
 	
-	private Map<String, Long> deliveryTagsMap;
+	private Map<String, DeliveryFrame> deliveryFramesMap;
 
 	private MetadataResponseHandler metadataResponseHandler;
 
@@ -53,14 +55,14 @@ public class MetadataResponseHandlerTest {
 		dropsMap = new HashMap<String, RawDrop>();
 		publishQueue = new LinkedBlockingQueue<RawDrop>();
 		dropFilterQueue = new LinkedBlockingQueue<String>();
-		deliveryTagsMap = new ConcurrentHashMap<String, Long>();
+		deliveryFramesMap = new ConcurrentHashMap<String, DeliveryFrame>();
 		
 		metadataResponseHandler = new MetadataResponseHandler();
 		metadataResponseHandler.setDropsMap(dropsMap);
 		metadataResponseHandler.setObjectMapper(objectMapper);
 		metadataResponseHandler.setPublishQueue(publishQueue);
 		metadataResponseHandler.setDropFilterQueue(dropFilterQueue);
-		metadataResponseHandler.setDeliveryTagsMap(deliveryTagsMap);
+		metadataResponseHandler.setDeliveryFramesMap(deliveryFramesMap);
 	}
 	
 	@Test
@@ -131,17 +133,21 @@ public class MetadataResponseHandlerTest {
 		when(mockMessageProperties.getCorrelationId()).thenReturn("correlation_id".getBytes());
 		
 		RawDrop rawDrop = new RawDrop();
+		List<Long> riverIds = new ArrayList<Long>();
+		riverIds.add(2L);
+
 		rawDrop.setSemanticsComplete(true);
 		rawDrop.setMediaComplete(true);
 		rawDrop.setRulesComplete(true);
+		rawDrop.setRiverIds(riverIds);
 		dropsMap.put("correlation_id", rawDrop);
-		deliveryTagsMap.put("correlation_id", 22L);
+		deliveryFramesMap.put("correlation_id", new DeliveryFrame(22, mockChannel));
 
 		int size = dropFilterQueue.size();
 		metadataResponseHandler.onMessage(mockMessage, mockChannel);
 		assertTrue(dropsMap.isEmpty());
 		assertTrue(publishQueue.contains(rawDrop));
 		assertEquals(size + 1, dropFilterQueue.size());
-		assertTrue(deliveryTagsMap.isEmpty());
+		assertTrue(deliveryFramesMap.isEmpty());
 	}
 }
