@@ -57,12 +57,6 @@ public class RawDrop {
 	
 	private String source;
 	
-	@JsonProperty("semantics_complete")
-	private boolean semanticsComplete;
-	
-	@JsonProperty("media_complete")
-	private boolean mediaComplete;
-	
 	@JsonProperty("channel_ids")
 	private List<Long> channelIds;
 
@@ -77,17 +71,23 @@ public class RawDrop {
 	
 	private List<Place> places;
 	
-	private Long deliveryTag;
-	
-	@JsonProperty("rules_complete")
-	private boolean rulesComplete;
-	
 	@JsonProperty("bucket_id")
 	private List<Long> bucketIds;
 	
 	@JsonProperty("mark_as_read")
 	private List<Long> markAsRead;
 	
+	@JsonProperty("semantics_complete")
+	private boolean semanticsComplete;
+
+	@JsonProperty("media_complete")
+	private boolean mediaComplete;
+
+	private Long deliveryTag;
+
+	@JsonProperty("rules_complete")
+	private boolean rulesComplete;
+
 	public String getChannel() {
 		return channel;
 	}
@@ -192,22 +192,6 @@ public class RawDrop {
 		this.source = source;
 	}
 
-	public boolean isSemanticsComplete() {
-		return semanticsComplete;
-	}
-
-	public void setSemanticsComplete(boolean semanticsComplete) {
-		this.semanticsComplete = semanticsComplete;
-	}
-
-	public boolean isMediaComplete() {
-		return mediaComplete;
-	}
-
-	public void setMediaComplete(boolean mediaComplete) {
-		this.mediaComplete = mediaComplete;
-	}
-
 	public List<Long> getRiverIds() {
 		return riverIds;
 	}
@@ -256,22 +240,6 @@ public class RawDrop {
 		this.places = places;
 	}
 
-	public Long getDeliveryTag() {
-		return deliveryTag;
-	}
-
-	public void setDeliveryTag(Long deliveryTag) {
-		this.deliveryTag = deliveryTag;
-	}
-
-	public boolean isRulesComplete() {
-		return rulesComplete;
-	}
-
-	public void setRulesComplete(boolean rulesComplete) {
-		this.rulesComplete = rulesComplete;
-	}
-
 	public List<Long> getBucketIds() {
 		return bucketIds;
 	}
@@ -286,6 +254,38 @@ public class RawDrop {
 
 	public void setMarkAsRead(List<Long> markAsRead) {
 		this.markAsRead = markAsRead;
+	}
+
+	public boolean isSemanticsComplete() {
+		return semanticsComplete;
+	}
+
+	public void setSemanticsComplete(boolean semanticsComplete) {
+		this.semanticsComplete = semanticsComplete;
+	}
+
+	public boolean isMediaComplete() {
+		return mediaComplete;
+	}
+
+	public void setMediaComplete(boolean mediaComplete) {
+		this.mediaComplete = mediaComplete;
+	}
+
+	public Long getDeliveryTag() {
+		return deliveryTag;
+	}
+
+	public void setDeliveryTag(Long deliveryTag) {
+		this.deliveryTag = deliveryTag;
+	}
+
+	public boolean isRulesComplete() {
+		return rulesComplete;
+	}
+
+	public void setRulesComplete(boolean rulesComplete) {
+		this.rulesComplete = rulesComplete;
 	}
 
 	public static class Link {
@@ -318,8 +318,8 @@ public class RawDrop {
 		
 		private String type;
 		
-		@JsonProperty("drop_image")
-		private String dropImage;
+		@JsonProperty("droplet_image")
+		private boolean dropImage;
 		
 		private List<Thumbnail> thumbnails;
 
@@ -339,11 +339,11 @@ public class RawDrop {
 			this.type = type;
 		}
 
-		public String getDropImage() {
+		public boolean isDropImage() {
 			return dropImage;
 		}
 
-		public void setDropImage(String dropImage) {
+		public void setDropImage(boolean dropImage) {
 			this.dropImage = dropImage;
 		}
 

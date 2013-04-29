@@ -119,9 +119,13 @@ public class Publisher {
 			if (rawDrop.getMedia() != null) {
 				List<Drop.Media> media = new ArrayList<Drop.Media>();
 				for (RawDrop.Media rawMedia : rawDrop.getMedia()) {
-					Drop.Media m = new Drop.Media();
-					m.setUrl(rawMedia.getUrl());
-					m.setType(rawMedia.getType());
+					Drop.Media dropMedia = new Drop.Media();
+					dropMedia.setUrl(rawMedia.getUrl());
+					dropMedia.setType(rawMedia.getType());
+					
+					if (rawMedia.isDropImage()) {
+						drop.setImage(rawMedia.getUrl());
+					}
 
 					if (rawMedia.getThumbnails() != null) {
 						List<Drop.Media.MediaThumbnail> thumbnails = new ArrayList<Drop.Media.MediaThumbnail>();
@@ -131,9 +135,9 @@ public class Publisher {
 							thumbnail.setSize(t.getSize());
 							thumbnails.add(thumbnail);
 						}
-						m.setThumbnails(thumbnails);
+						dropMedia.setThumbnails(thumbnails);
 					}					
-					media.add(m);
+					media.add(dropMedia);
 				}
 				drop.setMedia(media);
 			}

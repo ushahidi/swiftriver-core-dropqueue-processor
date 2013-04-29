@@ -57,6 +57,7 @@ public class PublisherTest {
 		publisher.setApiClient(mockApiClient);
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void postDrops() throws IOException {
 		RawDrop rawDrop = new RawDrop();
@@ -98,6 +99,7 @@ public class PublisherTest {
 		RawDrop.Media m = new RawDrop.Media();
 		m.setUrl("url");
 		m.setType("media type");
+		m.setDropImage(true);
 		RawDrop.Thumbnail thumbnail = new RawDrop.Thumbnail();
 		thumbnail.setSize(100);
 		thumbnail.setUrl("thumbnail url");
@@ -138,6 +140,7 @@ public class PublisherTest {
 		assertEquals(1, drop.getMedia().size());
 		assertEquals("url", drop.getMedia().get(0).getUrl());
 		assertEquals("media type", drop.getMedia().get(0).getType());
+		assertEquals("url", drop.getImage());
 		assertEquals(1, drop.getMedia().get(0).getThumbnails().size());
 		assertEquals(100, drop.getMedia().get(0).getThumbnails().get(0).getSize());
 		assertEquals("thumbnail url", drop.getMedia().get(0).getThumbnails().get(0).getUrl());
