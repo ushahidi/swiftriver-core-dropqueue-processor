@@ -39,7 +39,7 @@ public class Publisher {
 	private BlockingQueue<RawDrop> publishQueue;
 
 	private SwiftRiverClient apiClient;
-
+	
 	public BlockingQueue<RawDrop> getPublishQueue() {
 		return publishQueue;
 	}
@@ -55,8 +55,7 @@ public class Publisher {
 	public void setApiClient(SwiftRiverClient apiClient) {
 		this.apiClient = apiClient;
 	}
-
-
+	
 	/**
 	 * Publishes drops the the SwiftRiver REST API
 	 * 
@@ -156,6 +155,6 @@ public class Publisher {
 			drops.add(drop);
 		}
 
-		apiClient.drops().createDrops(drops);
+		apiClient.postDrops(drops);
 	}
 }

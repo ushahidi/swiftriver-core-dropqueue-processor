@@ -148,8 +148,8 @@
 	<!-- Publisher for drops that have completed metadata extraction -->
 	<bean id="httpTransport" class="com.google.api.client.http.javanet.NetHttpTransport" />
 	<bean id="clientAuthentication" class="com.google.api.client.http.BasicAuthentication">
-		<constructor-arg name="username" value="trusted-client" />
-		<constructor-arg name="password" value="somesecret" />
+		<constructor-arg name="username" value="${api.client.id}" />
+		<constructor-arg name="password" value="${api.client.secret}" />
 	</bean>
 	<bean id="credentials"
 		class="com.ushahidi.swiftriver.core.dropqueue.support.CredentialFactoryBean">
@@ -158,13 +158,13 @@
 		<property name="jsonFactory">
 			<bean class="com.google.api.client.json.jackson.JacksonFactory" />
 		</property>
-		<property name="tokenServerUrl"
-			value="http://localhost:8080/swiftriver-api/oauth/token" />
+		<property name="tokenServerUrl" value="${api.token.server.url}" />
 	</bean>
 	<bean id="apiClient"
 		class="com.ushahidi.swiftriver.core.api.client.SwiftRiverClient">
 		<constructor-arg name="httpTransport" ref="httpTransport" />
 		<constructor-arg name="httpRequestInitializer" ref="credentials" />
+		<constructor-arg name="dropPostUrl" value="${api.drops.post.url}" />
 	</bean>
 
 	<bean id="publisher" class="com.ushahidi.swiftriver.core.dropqueue.Publisher">

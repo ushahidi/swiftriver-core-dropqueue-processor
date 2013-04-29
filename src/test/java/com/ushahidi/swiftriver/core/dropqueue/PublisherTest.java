@@ -41,16 +41,12 @@ public class PublisherTest {
 	
 	private SwiftRiverClient mockApiClient;
 	
-	private DropsService mockDropsService;
-	
 	private Publisher publisher;
 
 	@Before
 	public void setup() {
 		publishQueue = new LinkedBlockingQueue<RawDrop>();
 		mockApiClient = mock(SwiftRiverClient.class);
-		mockDropsService = mock(DropsService.class);
-		when(mockApiClient.drops()).thenReturn(mockDropsService);
 		
 		publisher = new Publisher();
 		publisher.setPublishQueue(publishQueue);
@@ -116,7 +112,7 @@ public class PublisherTest {
 		
 		ArgumentCaptor<List> argument = ArgumentCaptor
 				.forClass(List.class);
-		verify(mockDropsService).createDrops(argument.capture());
+		verify(mockApiClient).postDrops(argument.capture());
 		List<Drop> drops = argument.getValue();
 		
 		assertEquals(1, drops.size());
