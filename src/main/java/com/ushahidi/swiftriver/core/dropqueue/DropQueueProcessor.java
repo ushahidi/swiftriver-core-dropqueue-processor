@@ -29,19 +29,20 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * for posting to the SwiftRiver REST API.
  * 
  */
-public class DropQueueProcessor {
+public class DropQueueProcessor  {
 
-	final static Logger LOG = LoggerFactory.getLogger(DropQueueProcessor.class);
+	final static Logger logger = LoggerFactory.getLogger(DropQueueProcessor.class);
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"appContext.xml");
 		context.registerShutdownHook();
-		
-		DropFilterPublisher publisher = context.getBean(DropFilterPublisher.class);
-		publisher.start();
 
-		LOG.info("Drop Queue Processor Started");
+		DropFilterPublisher dropFilterPublisher = context.getBean(DropFilterPublisher.class);
+		dropFilterPublisher.start();
+
+		logger.info("Drop queue processor started");
 	}
+
 }
