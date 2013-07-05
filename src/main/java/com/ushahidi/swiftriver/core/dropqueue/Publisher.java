@@ -63,8 +63,9 @@ public class Publisher {
 	 * to the api in a single batch.
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public void postDrops() throws IOException {
+	public void postDrops() throws IOException, InterruptedException {
 		if (publishQueue.isEmpty())
 			return;
 
@@ -155,6 +156,16 @@ public class Publisher {
 			drops.add(drop);
 		}
 
-		apiClient.postDrops(drops);
+		List<Drop> result = null;
+		while (result == null) {
+			result = apiClient.postDrops(drops);
+			if (result == null) {
+				logger.error("An error occurred while posting the drops to the API. " +
+						"Retrying after 30s");
+				Thread.sleep(30000);
+			}
+		}
+		
+		logger.debug("Successfully posted {} drops to the API", result.size());
 	}
 }

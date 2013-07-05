@@ -18,7 +18,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +31,6 @@ import org.mockito.ArgumentCaptor;
 
 import com.ushahidi.swiftriver.core.api.client.SwiftRiverClient;
 import com.ushahidi.swiftriver.core.api.client.model.Drop;
-import com.ushahidi.swiftriver.core.api.client.service.DropsService;
 import com.ushahidi.swiftriver.core.dropqueue.model.RawDrop;
 
 public class PublisherTest {
@@ -55,7 +53,7 @@ public class PublisherTest {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void postDrops() throws IOException {
+	public void postDrops() throws IOException, InterruptedException {
 		RawDrop rawDrop = new RawDrop();
 		rawDrop.setTitle("title");
 		rawDrop.setContent("content");
