@@ -80,6 +80,12 @@ public class Publisher {
 			Drop drop = new Drop();
 			drop.setTitle(rawDrop.getTitle());
 			drop.setContent(rawDrop.getContent());
+			
+			// Check if the content property is null
+			if (drop.getContent() == null) {
+				drop.setContent(drop.getTitle());
+			}
+
 			drop.setChannel(rawDrop.getChannel());
 			drop.setDatePublished(rawDrop.getDatePublished());
 			drop.setOriginalId(rawDrop.getDropOriginalId());
