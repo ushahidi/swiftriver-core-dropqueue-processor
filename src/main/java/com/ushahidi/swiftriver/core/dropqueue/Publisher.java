@@ -104,9 +104,14 @@ public class Publisher {
 			if (rawDrop.getLinks() != null) {
 				List<Drop.Link> links = new ArrayList<Drop.Link>();
 				for (RawDrop.Link l : rawDrop.getLinks()) {
+					String url = l.getUrl();
 					Drop.Link link = new Drop.Link();
-					link.setUrl(l.getUrl());
+					link.setUrl(url);
 					links.add(link);
+					
+					if (l.isOriginalUrl()) {
+						drop.setOriginalUrl(url);
+					}
 				}
 				drop.setLinks(links);
 			}

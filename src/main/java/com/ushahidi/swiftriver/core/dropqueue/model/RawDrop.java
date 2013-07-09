@@ -293,7 +293,7 @@ public class RawDrop {
 		private String url;
 		
 		@JsonProperty("original_url")
-		private Boolean originalUrl;
+		private boolean originalUrl;
 
 		public String getUrl() {
 			return url;
@@ -303,13 +303,14 @@ public class RawDrop {
 			this.url = url;
 		}
 
-		public Boolean getOriginalUrl() {
+		public boolean isOriginalUrl() {
 			return originalUrl;
 		}
 
-		public void setOriginalUrl(Boolean originalUrl) {
+		public void setOriginalUrl(boolean originalUrl) {
 			this.originalUrl = originalUrl;
 		}
+
 	}
 	
 	public static class Media {
