@@ -170,6 +170,7 @@
 	<bean id="publisher" class="com.ushahidi.swiftriver.core.dropqueue.Publisher">
 		<property name="publishQueue" ref="publishQueue" />
 		<property name="apiClient" ref="apiClient" />
+		<property name="dropBatchSize" value="#{ T(java.lang.Integer).parseInt(${api.drops.batch_size}) }" />
 	</bean>
 	<task:scheduler id="scheduler" />
 	<task:scheduled-tasks scheduler="scheduler">

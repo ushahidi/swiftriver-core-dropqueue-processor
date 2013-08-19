@@ -40,6 +40,8 @@ public class Publisher {
 
 	private SwiftRiverClient apiClient;
 	
+	private int dropBatchSize;
+	
 	public BlockingQueue<RawDrop> getPublishQueue() {
 		return publishQueue;
 	}
@@ -56,6 +58,10 @@ public class Publisher {
 		this.apiClient = apiClient;
 	}
 	
+	public void setDropBatchSize(int dropBatchSize) {
+		this.dropBatchSize = dropBatchSize;
+	}
+
 	/**
 	 * Publishes drops the the SwiftRiver REST API
 	 * 
@@ -70,7 +76,7 @@ public class Publisher {
 			return;
 
 		List<RawDrop> rawDrops = new ArrayList<RawDrop>();
-		publishQueue.drainTo(rawDrops);
+		publishQueue.drainTo(rawDrops, dropBatchSize);
 
 		logger.debug(String.format("Posting %d drops to API", rawDrops.size()));
 
