@@ -49,6 +49,7 @@ public class PublisherTest {
 		publisher = new Publisher();
 		publisher.setPublishQueue(publishQueue);
 		publisher.setApiClient(mockApiClient);
+		publisher.setDropBatchSize(100);
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
